@@ -53,7 +53,7 @@ typedef struct {
     ngx_uint_t            failed;
 } ngx_pool_data_t;
 
-
+// nginx 池结构
 struct ngx_pool_s {
     ngx_pool_data_t       d;
     size_t                max;

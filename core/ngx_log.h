@@ -12,7 +12,7 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 
-
+// log 的不同等级
 #define NGX_LOG_STDERR            0
 #define NGX_LOG_EMERG             1
 #define NGX_LOG_ALERT             2
@@ -34,6 +34,7 @@
 /*
  * do not forget to update debug_levels[] in src/core/ngx_log.c
  * after the adding a new debug level
+ * 在你增加了一个 debug level 后，记得要更新 debug_levels[]
  */
 
 #define NGX_LOG_DEBUG_FIRST       NGX_LOG_DEBUG_CORE
@@ -41,12 +42,13 @@
 #define NGX_LOG_DEBUG_CONNECTION  0x80000000
 #define NGX_LOG_DEBUG_ALL         0x7ffffff0
 
-
+// 函数指针 ngx_log_handler_pt 指向对于 log 的处理的函数
 typedef u_char *(*ngx_log_handler_pt) (ngx_log_t *log, u_char *buf, size_t len);
+// 函数指针 ， 针对于 写入 log
 typedef void (*ngx_log_writer_pt) (ngx_log_t *log, ngx_uint_t level,
     u_char *buf, size_t len);
 
-
+// nginx log 结构体
 struct ngx_log_s {
     ngx_uint_t           log_level;
     ngx_open_file_t     *file;
@@ -55,10 +57,10 @@ struct ngx_log_s {
 
     time_t               disk_full_time;
 
-    ngx_log_handler_pt   handler;
+    ngx_log_handler_pt   handler;           // 事件处理函数
     void                *data;
 
-    ngx_log_writer_pt    writer;
+    ngx_log_writer_pt    writer;            // 写入处理函数
     void                *wdata;
 
     /*
@@ -69,7 +71,7 @@ struct ngx_log_s {
 
     char                *action;
 
-    ngx_log_t           *next;
+    ngx_log_t           *next;              // 指向下一个节点
 };
 
 
@@ -82,6 +84,8 @@ struct ngx_log_s {
 
 #define NGX_HAVE_VARIADIC_MACROS  1
 
+// 调用 nginx 日志的 宏
+// 如果当前 log 的 log等级大于指定的 level， 
 #define ngx_log_error(level, log, ...)                                        \
     if ((log)->log_level >= level) ngx_log_error_core(level, log, __VA_ARGS__)
 

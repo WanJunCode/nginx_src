@@ -18,9 +18,10 @@ void *
 ngx_alloc(size_t size, ngx_log_t *log)
 {
     void  *p;
-
+    // 分配一块内存
     p = malloc(size);
     if (p == NULL) {
+        // 内存分配失败
         ngx_log_error(NGX_LOG_EMERG, log, ngx_errno,
                       "malloc(%uz) failed", size);
     }

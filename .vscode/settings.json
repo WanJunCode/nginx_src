@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "ngx_core.h": "c",
+        "ngx_errno.h": "c",
+        "ngx_atomic.h": "c",
+        "ngx_thread.h": "c",
+        "cmath": "c"
+    }
+}

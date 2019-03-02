@@ -190,16 +190,27 @@ static char        *ngx_signal;
 
 static char **ngx_os_environ;
 
+// int ngx_cdecl
+// main(int argc, char *const *argv)
+// {
+//     u_char buffer[2048];
+//     u_char *last;
+//     last = buffer + 2048;
+
+//     ngx_slprintf(buffer,last,"wanjun test[%d]\n[%d]",12,13);
+//     printf("test end\n");
+//     return 0;
+// }
 
 int ngx_cdecl
 main(int argc, char *const *argv)
 {
     ngx_buf_t        *b;
-    ngx_log_t        *log;
+    ngx_log_t        *log;      // 存储日志文件各种信息
     ngx_uint_t        i;
     ngx_cycle_t      *cycle, init_cycle;
     ngx_conf_dump_t  *cd;
-    ngx_core_conf_t  *ccf;
+    ngx_core_conf_t  *ccf;      // 存储配置项的结构体
 
     // 初始化 debug 信息
     ngx_debug_init();
@@ -235,6 +246,7 @@ main(int argc, char *const *argv)
     ngx_pid = ngx_getpid();
     ngx_parent = ngx_getppid();
 
+    // 初始化日志
     log = ngx_log_init(ngx_prefix);
     if (log == NULL) {
         return 1;
@@ -254,6 +266,7 @@ main(int argc, char *const *argv)
     init_cycle.log = log;
     ngx_cycle = &init_cycle;
 
+    // 分配内存池
     init_cycle.pool = ngx_create_pool(1024, log);
     if (init_cycle.pool == NULL) {
         return 1;
@@ -264,10 +277,12 @@ main(int argc, char *const *argv)
         return 1;
     }
 
+    // 用运行nginx时可能携带的目录参数来初始化cycle
     if (ngx_process_options(&init_cycle) != NGX_OK) {
         return 1;
     }
 
+    // 提取当前操作系统的一些信息
     if (ngx_os_init(log) != NGX_OK) {
         return 1;
     }
@@ -276,6 +291,8 @@ main(int argc, char *const *argv)
      * ngx_crc32_table_init() requires ngx_cacheline_size set in ngx_os_init()
      */
 
+    //初始化一个循环冗余校验的表
+    //后续的循环冗余校验可以直接查表
     if (ngx_crc32_table_init() != NGX_OK) {
         return 1;
     }
@@ -286,14 +303,19 @@ main(int argc, char *const *argv)
 
     ngx_slab_sizes_init();
 
+    //这个函数是为了执行不重启服务升级nginx做准备
+    //通过环境变量NGINX_VAR将老的nginx进程需要监听的端口传给新的nginx进程,这样就可以读取平滑升级的信息了
     if (ngx_add_inherited_sockets(&init_cycle) != NGX_OK) {
         return 1;
     }
 
+    //对所有模块进行编号
+    //ngx_modules数组在编译时已经生成了
     if (ngx_preinit_modules() != NGX_OK) {
         return 1;
     }
 
+    //大部分的初始化工作都在ngx_init_cycle中进行
     cycle = ngx_init_cycle(&init_cycle);
     if (cycle == NULL) {
         if (ngx_test_config) {
@@ -304,12 +326,14 @@ main(int argc, char *const *argv)
         return 1;
     }
 
+    // 测试配置项 
     if (ngx_test_config) {
         if (!ngx_quiet_mode) {
             ngx_log_stderr(0, "configuration file %s test is successful",
                            cycle->conf_file.data);
         }
 
+        // nginx 导出 配置文件
         if (ngx_dump_config) {
             cd = cycle->config_dump.elts;
 
@@ -330,6 +354,7 @@ main(int argc, char *const *argv)
         return 0;
     }
 
+    // 完成对信号的注册等工作
     if (ngx_signal) {
         return ngx_signal_process(cycle, ngx_signal);
     }
@@ -338,6 +363,7 @@ main(int argc, char *const *argv)
 
     ngx_cycle = cycle;
 
+    // 获得 nginx core configure 核心配置
     ccf = (ngx_core_conf_t *) ngx_get_conf(cycle->conf_ctx, ngx_core_module);
 
     if (ccf->master && ngx_process == NGX_PROCESS_SINGLE) {
@@ -380,6 +406,7 @@ main(int argc, char *const *argv)
         }
     }
 
+    // nginx 使用的 标准错误输出 fd 为 0
     ngx_use_stderr = 0;
 
     if (ngx_process == NGX_PROCESS_SINGLE) {

@@ -9,6 +9,9 @@
     // __sync_fetch_and_add
     // __sync_lock_test_and_set
 
+// 最后得到以下两个宏
+// ngx_atomic_cmp_set(lock, old, set)
+// ngx_atomic_fetch_add(value, add)                                      \
 
 
 #ifndef _NGX_ATOMIC_H_INCLUDED_

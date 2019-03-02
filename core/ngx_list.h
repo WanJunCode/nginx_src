@@ -21,7 +21,7 @@ struct ngx_list_part_s {
     ngx_list_part_t  *next;
 };
 
-
+// 链表
 typedef struct {
     ngx_list_part_t  *last;
     ngx_list_part_t   part;

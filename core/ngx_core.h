@@ -8,7 +8,7 @@
 #ifndef _NGX_CORE_H_INCLUDED_
 #define _NGX_CORE_H_INCLUDED_
 
-
+// nginx core 核心配置
 #include <ngx_config.h>
 
 // 模块

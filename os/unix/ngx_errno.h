@@ -15,6 +15,7 @@
 
 typedef int               ngx_err_t;
 
+// 系统 错误码
 #define NGX_EPERM         EPERM
 #define NGX_ENOENT        ENOENT
 #define NGX_ENOPATH       ENOENT
@@ -65,14 +66,15 @@ typedef int               ngx_err_t;
 #define NGX_EAGAIN        EAGAIN
 #endif
 
-
+// errno 对应操作
 #define ngx_errno                  errno
 #define ngx_socket_errno           errno
 #define ngx_set_errno(err)         errno = err
 #define ngx_set_socket_errno(err)  errno = err
 
-
+// 根据 nginx errcode 获得对应的字符串
 u_char *ngx_strerror(ngx_err_t err, u_char *errstr, size_t size);
+// 初始化 nginx errcode
 ngx_int_t ngx_strerror_init(void);
 
 

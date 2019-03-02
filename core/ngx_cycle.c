@@ -54,6 +54,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
     ngx_core_module_t   *module;
     char                 hostname[NGX_MAXHOSTNAMELEN];
 
+    /* 更新时区和时间 */
     ngx_timezone_update();
 
     /* force localtime update with a new timezone */
@@ -66,18 +67,21 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
 
     log = old_cycle->log;
 
+    // 创建内存池
     pool = ngx_create_pool(NGX_CYCLE_POOL_SIZE, log);
     if (pool == NULL) {
         return NULL;
     }
     pool->log = log;
 
+    // 通过内存池 分配一个 ngx_cycle_t 对象 
     cycle = ngx_pcalloc(pool, sizeof(ngx_cycle_t));
     if (cycle == NULL) {
         ngx_destroy_pool(pool);
         return NULL;
     }
 
+    //设置cycle的一些成员的值
     cycle->pool = pool;
     cycle->log = log;
     cycle->old_cycle = old_cycle;
@@ -112,9 +116,12 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
         return NULL;
     }
 
-
+    /* nelts表示实际存放的元素个数
+     * 如果为0,则默认是10
+     */
     n = old_cycle->paths.nelts ? old_cycle->paths.nelts : 10;
 
+    //从内存池中申请空间
     if (ngx_array_init(&cycle->paths, pool, n, sizeof(ngx_path_t *))
         != NGX_OK)
     {

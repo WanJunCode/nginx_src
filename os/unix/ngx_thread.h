@@ -16,7 +16,7 @@
 
 #include <pthread.h>
 
-
+// mutex 和 condition_variable 函数封装
 typedef pthread_mutex_t  ngx_thread_mutex_t;
 
 ngx_int_t ngx_thread_mutex_create(ngx_thread_mutex_t *mtx, ngx_log_t *log);
@@ -35,7 +35,7 @@ ngx_int_t ngx_thread_cond_wait(ngx_thread_cond_t *cond, ngx_thread_mutex_t *mtx,
 
 
 #if (NGX_LINUX)
-
+// linux 平台下 线程id 类型是 pid_t
 typedef pid_t      ngx_tid_t;
 #define NGX_TID_T_FMT         "%P"
 
@@ -59,12 +59,13 @@ typedef uint64_t   ngx_tid_t;
 // 返回当前 线程id
 ngx_tid_t ngx_thread_tid(void);
 
+// nginx log 线程id 
 #define ngx_log_tid           ngx_thread_tid()
 
 #else
 
 #define ngx_log_tid           0
-// nginx thread id format
+// nginx thread id format 打印线程的 格式
 #define NGX_TID_T_FMT         "%d"
 
 #endif

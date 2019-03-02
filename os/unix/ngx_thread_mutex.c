@@ -78,6 +78,7 @@ ngx_int_t
 ngx_thread_mutex_create(ngx_thread_mutex_t *mtx, ngx_log_t *log)
 {
     ngx_err_t            err;
+    // posix thread atttr 锁属性
     pthread_mutexattr_t  attr;
 
     err = pthread_mutexattr_init(&attr);

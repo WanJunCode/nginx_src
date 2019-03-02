@@ -90,8 +90,10 @@ static const char *debug_levels[] = {
 };
 
 
+// 判断平台是否 有 variadic 宏（变参）
 #if (NGX_HAVE_VARIADIC_MACROS)
 
+// 该函数用于记录 日志
 void
 ngx_log_error_core(ngx_uint_t level, ngx_log_t *log, ngx_err_t err,
     const char *fmt, ...)
@@ -110,25 +112,28 @@ ngx_log_error_core(ngx_uint_t level, ngx_log_t *log, ngx_err_t err,
     u_char      *p, *last, *msg;
     ssize_t      n;
     ngx_uint_t   wrote_stderr, debug_connection;
-    u_char       errstr[NGX_MAX_ERROR_STR];
+    u_char       errstr[NGX_MAX_ERROR_STR];// 2048最长
 
+    // 获得 u_char 数组的末尾
     last = errstr + NGX_MAX_ERROR_STR;
 
+    // 将时间字符串 复制到 errstr字符数组中
     p = ngx_cpymem(errstr, ngx_cached_err_log_time.data,
                    ngx_cached_err_log_time.len);
-
+    // 根据 level ，获得相应的 string
     p = ngx_slprintf(p, last, " [%V] ", &err_levels[level]);
 
-    /* pid#tid */
+    /* pid进程 #tid线程 */
     p = ngx_slprintf(p, last, "%P#" NGX_TID_T_FMT ": ",
                     ngx_log_pid, ngx_log_tid);
-
+    // 该log是否有相联系的 connection ， fd
     if (log->connection) {
         p = ngx_slprintf(p, last, "*%uA ", log->connection);
     }
 
+    // msg 获得当前 p 的地址
     msg = p;
-
+    // 通过变参，将参数写入 字符数组errstr中
 #if (NGX_HAVE_VARIADIC_MACROS)
 
     va_start(args, fmt);
@@ -142,20 +147,26 @@ ngx_log_error_core(ngx_uint_t level, ngx_log_t *log, ngx_err_t err,
 #endif
 
     if (err) {
+        // 记录 errno信息
         p = ngx_log_errno(p, last, err);
     }
 
+    // 当前等级不是 debug ， 并且 log有一个handler处理函数指针
     if (level != NGX_LOG_DEBUG && log->handler) {
         p = log->handler(log, p, last - p);
     }
 
+    // linefeed 换行
     if (p > last - NGX_LINEFEED_SIZE) {
         p = last - NGX_LINEFEED_SIZE;
     }
 
+    // 添加一个换行符
     ngx_linefeed(p);
 
+    // 是否写入到 标准错误
     wrote_stderr = 0;
+    // & 操作符， 1 1 == 1； 
     debug_connection = (log->log_level & NGX_LOG_DEBUG_CONNECTION) != 0;
 
     while (log) {
@@ -164,7 +175,9 @@ ngx_log_error_core(ngx_uint_t level, ngx_log_t *log, ngx_err_t err,
             break;
         }
 
+        // log 的写入函数
         if (log->writer) {
+            // 参数 log 带入自己本身
             log->writer(log, level, errstr, p - errstr);
             goto next;
         }
@@ -179,13 +192,15 @@ ngx_log_error_core(ngx_uint_t level, ngx_log_t *log, ngx_err_t err,
 
             goto next;
         }
-
+        
+        // 向 日志对应的 文件写入数据
         n = ngx_write_fd(log->file->fd, errstr, p - errstr);
 
         if (n == -1 && ngx_errno == NGX_ENOSPC) {
             log->disk_full_time = ngx_time();
         }
 
+        // 如果 文件 fd == 标准错误输出
         if (log->file->fd == ngx_stderr) {
             wrote_stderr = 1;
         }
@@ -206,10 +221,12 @@ ngx_log_error_core(ngx_uint_t level, ngx_log_t *log, ngx_err_t err,
 
     (void) ngx_sprintf(msg, "nginx: [%V] ", &err_levels[level]);
 
+    // 输出到控制台
     (void) ngx_write_console(ngx_stderr, msg, p - msg);
 }
 
 
+// 没有变参宏
 #if !(NGX_HAVE_VARIADIC_MACROS)
 
 void ngx_cdecl
@@ -263,7 +280,8 @@ ngx_log_stderr(ngx_err_t err, const char *fmt, ...)
     u_char    errstr[NGX_MAX_ERROR_STR];
 
     last = errstr + NGX_MAX_ERROR_STR;
-
+    
+    // memcpy
     p = ngx_cpymem(errstr, "nginx: ", 7);
 
     va_start(args, fmt);
@@ -287,6 +305,7 @@ ngx_log_stderr(ngx_err_t err, const char *fmt, ...)
 u_char *
 ngx_log_errno(u_char *buf, u_char *last, ngx_err_t err)
 {
+    // 留出足够的位置给 error code
     if (buf > last - 50) {
 
         /* leave a space for an error code */

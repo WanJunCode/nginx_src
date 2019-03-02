@@ -210,6 +210,7 @@ ngx_palloc_block(ngx_pool_t *pool, size_t size)
 }
 
 
+// 分配大于 池大小的 size
 static void *
 ngx_palloc_large(ngx_pool_t *pool, size_t size)
 {
@@ -217,6 +218,7 @@ ngx_palloc_large(ngx_pool_t *pool, size_t size)
     ngx_uint_t         n;
     ngx_pool_large_t  *large;
 
+    // 给 pool malloc size 大小的内存
     p = ngx_alloc(size, pool->log);
     if (p == NULL) {
         return NULL;
